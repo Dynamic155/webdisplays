@@ -5,13 +5,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.montoyo.wd.entity.TileEntityScreen;
 import org.jspecify.annotations.Nullable;
 
 /*
@@ -22,7 +26,7 @@ import org.jspecify.annotations.Nullable;
  * click mapping. None of that is wired up here yet -- it depends on TileEntityScreen, which hasn't
  * been ported to BlockEntity yet.
  */
-public class BlockScreen extends Block {
+public class BlockScreen extends Block implements EntityBlock {
     public static final MapCodec<BlockScreen> CODEC = simpleCodec(BlockScreen::new);
 
     public static final BooleanProperty HAS_TE = BooleanProperty.create("haste");
@@ -50,12 +54,17 @@ public class BlockScreen extends Block {
     }
 
     @Override
-    protected int getSignal(BlockState state, net.minecraft.world.level.BlockGetter level, BlockPos pos, Direction direction) {
+    protected int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
         return state.getValue(EMITTING) ? 15 : 0;
     }
 
     @Override
     protected boolean isSignalSource(BlockState state) {
         return state.getValue(EMITTING);
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return state.getValue(HAS_TE) ? new TileEntityScreen(pos, state) : null;
     }
 }

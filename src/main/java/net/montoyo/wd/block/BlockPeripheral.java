@@ -9,6 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -16,17 +18,21 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.montoyo.wd.core.DefaultPeripheral;
+import net.montoyo.wd.entity.TileEntityKeyboard;
+import net.montoyo.wd.entity.TileEntityRCtrl;
+import net.montoyo.wd.entity.TileEntityRedCtrl;
+import net.montoyo.wd.entity.TileEntityServer;
 import org.jspecify.annotations.Nullable;
 
 /*
  * TODO registration-only port. The original BlockPeripheral backs 5 different peripheral types
  * (keyboard, CC/OC interface, remote controller, redstone controller, server) each with their own
- * TileEntity and right-click behavior (see legacy-1.12.2 BlockPeripheral). None of the per-type
- * TileEntities are ported yet, so this block currently has no block entity and no interaction logic.
- * The keyboard's special 2-block placement logic (BlockKeyboardRight) and bounding boxes are also
- * not yet ported.
+ * TileEntity and right-click behavior (see legacy-1.12.2 BlockPeripheral). CC/OC interfaces are
+ * dropped for now (see DefaultPeripheral). The 4 remaining TileEntity types are registered and
+ * created, but none have their interaction logic ported yet. The keyboard's special 2-block
+ * placement logic (BlockKeyboardRight) and bounding boxes are also not yet ported.
  */
-public class BlockPeripheral extends Block {
+public class BlockPeripheral extends Block implements EntityBlock {
     public static final MapCodec<BlockPeripheral> CODEC = simpleCodec(BlockPeripheral::new);
 
     public static final EnumProperty<DefaultPeripheral> TYPE = EnumProperty.create("type", DefaultPeripheral.class);
@@ -58,5 +64,15 @@ public class BlockPeripheral extends Block {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         // TODO: port the per-peripheral-type interaction logic from legacy BlockPeripheral#onBlockActivated
         return InteractionResult.PASS;
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return switch (state.getValue(TYPE)) {
+            case KEYBOARD -> new TileEntityKeyboard(pos, state);
+            case REMOTE_CONTROLLER -> new TileEntityRCtrl(pos, state);
+            case REDSTONE_CONTROLLER -> new TileEntityRedCtrl(pos, state);
+            case SERVER -> new TileEntityServer(pos, state);
+        };
     }
 }
