@@ -1,4 +1,11 @@
+/*
+ * Copyright (C) 2018 BARBOTIN Nicolas
+ */
+
 package net.montoyo.wd.core;
+
+import net.minecraft.item.ItemStack;
+import net.montoyo.wd.WebDisplays;
 
 public enum DefaultUpgrade {
 
@@ -20,8 +27,13 @@ public enum DefaultUpgrade {
         return name;
     }
 
-    public String getWikiName() {
-        return wikiName;
+    public boolean matches(ItemStack is) {
+        return is.getItem() == WebDisplays.INSTANCE.itemUpgrade && is.getMetadata() == ordinal();
+    }
+
+    public static String getWikiName(int meta) {
+        DefaultUpgrade[] values = values();
+        return (meta >= 0 && meta < values.length) ? values[meta].wikiName : null;
     }
 
 }
